@@ -8,7 +8,6 @@ let router = express.Router();
 router.get('/', (req, res, next) => {
   User.findAll()
   .then(arr => {
-    console.log(arr);
     res.render('userIndex', {users: arr});
   });
 });
@@ -27,22 +26,21 @@ router.get('/:id', (req, res, next) => {
 
   Promise.all([p1, p2])
   .then(json => {
-    console.log(json);
-    console.log(json[0].dataValues.title);
-    res.render('wikipage.html', {
-      pageTitle: json[0].dataValues.title,
-      pageContent: json[0].dataValues.content,
-      authorName: json[1].dataValues.name
+    let pageAry = json[0];
+    const authorName = json[1].dataValues.name;
+
+    pageAry = pageAry.map(function(pageObj) { 
+      return {
+        pageTitle: pageObj.dataValues.title,
+        pageContent: pageObj.dataValues.content
+      }
     });
+
+    console.log(pageAry);
+    console.log(authorName);
+
+    res.render('wikipage.html', { authorName: authorName, pages: pageAry });
   })
-  // })
-  // .then((json) => {
-  //   console.log(json.dataValues);
-  //   res.render('../views/wikipage.html', {
-  //     pageTitle: json.dataValues.title,
-  //     pageContent: json.dataValues.content
-  //   });
-  // })
   .catch(next);
 })
 
