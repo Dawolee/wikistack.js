@@ -1,16 +1,20 @@
 const express = require('express');
 const nunjucks = require('nunjucks');
-const bodyparser = require('body-parser');
+const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const pg = require('pg');
 const models = require('./models');
+const router = require('./routes/index');
 
 const app = express();
 const env = nunjucks.configure('views', {noCache: true});
 app.set('view engine', 'html');
 app.engine('html', nunjucks.render);
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(express.static('public'));
+app.use('/', router);
 
 app.get('/', (req, res, next) => {
   res.render('index');

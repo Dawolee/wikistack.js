@@ -3,6 +3,14 @@ const db = new Sequelize('postgres://localhost:5432/wikistack', {
   logging: false
 });
 
+function encoder(title) {
+  if (title) {
+    return title.split(' ').map(fragment => fragment.replace(/[\W]+/gi, '')).join('_');
+  } else {
+    return Math.random().toString(36).substring(2, 7);
+  }
+}
+
 const Page = db.define('page', {
   title: {
     type: Sequelize.STRING,
@@ -11,13 +19,16 @@ const Page = db.define('page', {
       notEmpty: true
     }
   },
+  route: {
+    type: new Sequelize.VIRTUAL,
+    get() {
+      const root = `/wiki/${this.getDataValue('urlTitle')}`;
+      return root;
+    }
+  },
   urlTitle: {
     type: Sequelize.STRING,
     allowNull: false,
-    validate: {
-      isUrl: true,
-      notEmpty: true
-    }
   },
   content: {
     type: Sequelize.TEXT,
@@ -33,6 +44,10 @@ const Page = db.define('page', {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW
     }
+});
+
+Page.hook('beforeValidate', (page) => {
+  page.urlTitle = encoder(page.title);
 });
 
 const User = db.define('user', {
@@ -53,6 +68,8 @@ const User = db.define('user', {
     }
   }
 });
+
+Page.belongsTo(User, { as: 'author'});
 
 module.exports = {
   db,
