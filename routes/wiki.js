@@ -16,12 +16,17 @@ router.post('/', (req, res, next) => {
     status: req.body.pageStatus
   });
 
-  const user = User.build({
-    name: req.body.authorName,
-    email: req.body.authorEmail
-  });
-
-  page.save()
+  User.findOrCreate({
+    where: {
+      name: req.body.authorName,
+      email: req.body.authorEmail
+    }
+  })
+  .then((user) => {
+    return page.save().then(pageObj => {
+      return pageObj.setAuthor(user[0]);
+    })
+  })
   .then(createdPage => res.redirect(createdPage.route))
   .catch(next);
 });
@@ -37,7 +42,6 @@ router.get('/:path', (req, res, next) => {
     }
   })
   .then((json) => {
-    console.log(json.dataValues);
     res.render('../views/wikipage.html', {
       pageTitle: json.dataValues.title,
       pageContent: json.dataValues.content
